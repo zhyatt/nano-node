@@ -570,7 +570,8 @@ TEST (system, generate_send_existing)
 	rai::account_info info1;
 	{
 		rai::transaction transaction (system.wallet (0)->store.environment, nullptr, false);
-		ASSERT_FALSE (system.nodes[0]->store.account_get (transaction, rai::test_genesis_key.pub, info1));
+		rai::transaction block_transaction (system.nodes[0]->store.environment, nullptr, false);
+		ASSERT_FALSE (system.nodes[0]->store.account_get (block_transaction, rai::test_genesis_key.pub, info1));
 	}
 	std::vector<rai::account> accounts;
 	accounts.push_back (rai::test_genesis_key.pub);
@@ -578,7 +579,9 @@ TEST (system, generate_send_existing)
 	rai::account_info info2;
 	{
 		rai::transaction transaction (system.wallet (0)->store.environment, nullptr, false);
-		ASSERT_FALSE (system.nodes[0]->store.account_get (transaction, rai::test_genesis_key.pub, info2));
+		rai::transaction block_transaction (system.nodes[0]->store.environment, nullptr, false);
+		ASSERT_FALSE (system.nodes[0]->store.account_get (block_transaction, rai::test_genesis_key.pub, info2));
+		;
 	}
 	ASSERT_NE (info1.head, info2.head);
 	auto iterations1 (0);
@@ -616,7 +619,7 @@ TEST (system, generate_send_new)
 	system.generate_send_new (*system.nodes[0], accounts);
 	rai::account new_account (0);
 	{
-		rai::transaction transaction (system.nodes[0]->store.environment, nullptr, false);
+		rai::transaction transaction (system.wallet(0)->store.environment, nullptr, false);
 		auto iterator2 (system.wallet (0)->store.begin (transaction));
 		if (iterator2->first.uint256 () != rai::test_genesis_key.pub)
 		{

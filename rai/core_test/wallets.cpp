@@ -76,8 +76,7 @@ TEST (wallets, wallet_create_max)
 	rai::system system (24000, 1);
 	bool error (false);
 	rai::wallets wallets (error, *system.nodes[0]);
-	const int nonWalletDbs = 16;
-	for (int i = 0; i < system.nodes[0]->config.lmdb_max_dbs - nonWalletDbs; i++)
+	for (int i = 0; i < system.nodes[0]->config.lmdb_max_dbs - 1; i++)
 	{
 		rai::keypair key;
 		auto wallet = wallets.create (key.pub);
@@ -85,7 +84,7 @@ TEST (wallets, wallet_create_max)
 		ASSERT_TRUE (existing != wallets.items.end ());
 		rai::raw_key seed;
 		seed.data = 0;
-		rai::transaction transaction (system.nodes[0]->store.environment, nullptr, true);
+		rai::transaction transaction (existing->second->store.environment, nullptr, true);
 		existing->second->store.seed_set (transaction, seed);
 	}
 	rai::keypair key;

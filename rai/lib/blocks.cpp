@@ -391,7 +391,6 @@ hashables (source_a, representative_a, account_a),
 signature (rai::sign_message (prv_a, pub_a, hash ())),
 work (work_a)
 {
-	assert (!representative_a.is_zero ());
 }
 
 rai::open_block::open_block (rai::block_hash const & source_a, rai::account const & representative_a, rai::account const & account_a, std::nullptr_t) :
