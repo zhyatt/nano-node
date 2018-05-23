@@ -607,7 +607,7 @@ TEST (wallet, work)
 	auto iterations (0);
 	while (!done)
 	{
-		rai::transaction transaction (system.nodes[0]->store.environment, nullptr, false);
+		rai::transaction transaction (system.wallet(0)->store.environment, nullptr, false);
 		uint64_t work (0);
 		if (!wallet->store.work_get (transaction, rai::test_genesis_key.pub, work))
 		{
@@ -628,7 +628,7 @@ TEST (wallet, work_generate)
 	wallet->insert_adhoc (rai::test_genesis_key.prv);
 	rai::account account1;
 	{
-		rai::transaction transaction (system.nodes[0]->store.environment, nullptr, false);
+		rai::transaction transaction (system.wallet(0)->store.environment, nullptr, false);
 		account1 = system.account (transaction, 0);
 	}
 	rai::keypair key;
@@ -640,6 +640,8 @@ TEST (wallet, work_generate)
 		++iterations1;
 		ASSERT_LT (iterations1, 200);
 	}
+	rai::transaction transaction (system.nodes[0]->store.environment, nullptr, false);
+	auto root (system.nodes[0]->ledger.latest_root (transaction, account1));
 	auto iterations2 (0);
 	auto again (true);
 	while (again)
@@ -647,8 +649,8 @@ TEST (wallet, work_generate)
 		system.poll ();
 		++iterations2;
 		ASSERT_LT (iterations2, 200);
-		rai::transaction transaction (system.nodes[0]->store.environment, nullptr, false);
-		again = wallet->store.work_get (transaction, account1, work1) || rai::work_validate (system.nodes[0]->ledger.latest_root (transaction, account1), work1);
+		rai::transaction transaction (system.wallet(0)->store.environment, nullptr, false);
+		again = wallet->store.work_get (transaction, account1, work1) || rai::work_validate (root, work1);
 	}
 }
 

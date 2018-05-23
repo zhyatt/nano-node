@@ -552,8 +552,8 @@ TEST (rpc, wallet_representative_set)
 		system.poll ();
 	}
 	ASSERT_EQ (200, response.status);
-	rai::transaction transaction (system.nodes[0]->store.environment, nullptr, false);
-	ASSERT_EQ (key.pub, system.nodes[0]->wallets.items.begin ()->second->store.representative (transaction));
+	rai::transaction transaction (system.wallet(0)->store.environment, nullptr, false);
+	ASSERT_EQ (key.pub, system.wallet(0)->store.representative (transaction));
 }
 
 TEST (rpc, account_list)
@@ -704,7 +704,7 @@ TEST (rpc, account_move)
 	ASSERT_EQ ("1", response.json.get<std::string> ("moved"));
 	ASSERT_TRUE (destination->exists (key.pub));
 	ASSERT_TRUE (destination->exists (rai::test_genesis_key.pub));
-	rai::transaction transaction (system.nodes[0]->store.environment, nullptr, false);
+	rai::transaction transaction (system.wallet(0)->store.environment, nullptr, false);
 	ASSERT_EQ (source->store.end (), source->store.begin (transaction));
 }
 
@@ -1162,7 +1162,8 @@ TEST (rpc, payment_begin_end)
 	rai::uint256_union account;
 	ASSERT_FALSE (account.decode_account (account_text));
 	ASSERT_TRUE (wallet->exists (account));
-	auto root1 (system.nodes[0]->ledger.latest_root (rai::transaction (wallet->store.environment, nullptr, false), account));
+	rai::transaction transaction (system.nodes[0]->store.environment, nullptr, false);
+	auto root1 (system.nodes[0]->ledger.latest_root (transaction, account));
 	uint64_t work (0);
 	auto iteration (0);
 	ASSERT_TRUE (rai::work_validate (root1, work));
@@ -2009,7 +2010,7 @@ TEST (rpc, wallet_change_seed)
 	rai::system system0 (24000, 1);
 	rai::keypair seed;
 	{
-		rai::transaction transaction (system0.nodes[0]->store.environment, nullptr, false);
+		rai::transaction transaction (system0.wallet(0)->store.environment, nullptr, false);
 		rai::raw_key seed0;
 		system0.wallet (0)->store.seed (seed0, transaction);
 		ASSERT_NE (seed.pub, seed0.data);
@@ -2027,7 +2028,7 @@ TEST (rpc, wallet_change_seed)
 	}
 	ASSERT_EQ (200, response.status);
 	{
-		rai::transaction transaction (system0.nodes[0]->store.environment, nullptr, false);
+		rai::transaction transaction (system0.wallet(0)->store.environment, nullptr, false);
 		rai::raw_key seed0;
 		system0.wallet (0)->store.seed (seed0, transaction);
 		ASSERT_EQ (seed.pub, seed0.data);
@@ -2230,7 +2231,7 @@ TEST (rpc, deterministic_key)
 	rai::system system0 (24000, 1);
 	rai::raw_key seed;
 	{
-		rai::transaction transaction (system0.nodes[0]->store.environment, nullptr, false);
+		rai::transaction transaction (system0.wallet(0)->store.environment, nullptr, false);
 		system0.wallet (0)->store.seed (seed, transaction);
 	}
 	rai::account account0 (system0.wallet (0)->deterministic_insert ());
@@ -2664,8 +2665,8 @@ TEST (rpc, work_get)
 	ASSERT_EQ (200, response.status);
 	std::string work_text (response.json.get<std::string> ("work"));
 	uint64_t work (1);
-	rai::transaction transaction (system.nodes[0]->store.environment, nullptr, false);
-	system.nodes[0]->wallets.items.begin ()->second->store.work_get (transaction, rai::genesis_account, work);
+	rai::transaction transaction (system.wallet(0)->store.environment, nullptr, false);
+	system.wallet(0)->store.work_get (transaction, rai::genesis_account, work);
 	ASSERT_EQ (rai::to_string_hex (work), work_text);
 }
 
@@ -2684,14 +2685,14 @@ TEST (rpc, wallet_work_get)
 		system.poll ();
 	}
 	ASSERT_EQ (200, response.status);
-	rai::transaction transaction (system.nodes[0]->store.environment, nullptr, false);
+	rai::transaction transaction (system.wallet(0)->store.environment, nullptr, false);
 	for (auto & works : response.json.get_child ("works"))
 	{
 		std::string account_text (works.first);
 		ASSERT_EQ (rai::test_genesis_key.pub.to_account (), account_text);
 		std::string work_text (works.second.get<std::string> (""));
 		uint64_t work (1);
-		system.nodes[0]->wallets.items.begin ()->second->store.work_get (transaction, rai::genesis_account, work);
+		system.wallet(0)->store.work_get (transaction, rai::genesis_account, work);
 		ASSERT_EQ (rai::to_string_hex (work), work_text);
 	}
 }
@@ -2717,8 +2718,8 @@ TEST (rpc, work_set)
 	std::string success (response.json.get<std::string> ("success"));
 	ASSERT_TRUE (success.empty ());
 	uint64_t work1 (1);
-	rai::transaction transaction (system.nodes[0]->store.environment, nullptr, false);
-	system.nodes[0]->wallets.items.begin ()->second->store.work_get (transaction, rai::genesis_account, work1);
+	rai::transaction transaction (system.wallet(0)->store.environment, nullptr, false);
+	system.wallet(0)->store.work_get (transaction, rai::genesis_account, work1);
 	ASSERT_EQ (work1, work0);
 }
 
@@ -3457,7 +3458,7 @@ TEST (rpc, wallet_create_fail)
 	rai::rpc rpc (system.service, *system.nodes[0], rai::rpc_config (true));
 	auto node = system.nodes[0];
 	// lmdb_max_dbs should be removed once the wallet store is refactored to support more wallets.
-	for (int i = 0; i < 113; i++)
+	for (int i = 0; i < node->config.lmdb_max_dbs; i++)
 	{
 		rai::keypair key;
 		node->wallets.create (key.pub);
