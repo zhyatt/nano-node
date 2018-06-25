@@ -934,23 +934,8 @@ std::shared_ptr<rai::block> rai::wallet::change_action (rai::account const & sou
 				auto error2 (store.fetch (transaction, source_a, prv));
 				assert (!error2);
 				uint64_t cached_work (0);
-<<<<<<< HEAD
-<<<<<<< HEAD
 				store.work_get (transaction, source_a, cached_work);
 				block.reset (new rai::state_block (source_a, info.head, representative_a, info.balance, 0, prv, source_a, cached_work));
-=======
-=======
->>>>>>> de92e858f646e40450fffed92b812606df4a55b0
-				store.work_get (block_transaction, source_a, cached_work);
-				if (should_generate_state_block (block_transaction, info.head))
-				{
-					block.reset (new rai::state_block (source_a, info.head, representative_a, info.balance, 0, prv, source_a, cached_work));
-				}
-				else
-				{
-					block.reset (new rai::change_block (info.head, representative_a, prv, source_a, cached_work));
-				}
->>>>>>> Separating wallets from ledger database.
 			}
 		}
 	}
@@ -1021,23 +1006,8 @@ std::shared_ptr<rai::block> rai::wallet::send_action (rai::account const & sourc
 						std::shared_ptr<rai::block> rep_block = node.ledger.store.block_get (block_transaction, info.rep_block);
 						assert (rep_block != nullptr);
 						uint64_t cached_work (0);
-<<<<<<< HEAD
-<<<<<<< HEAD
 						store.work_get (transaction, source_a, cached_work);
 						block.reset (new rai::state_block (source_a, info.head, rep_block->representative (), balance - amount_a, account_a, prv, source_a, cached_work));
-=======
-=======
->>>>>>> de92e858f646e40450fffed92b812606df4a55b0
-						store.work_get (block_transaction, source_a, cached_work);
-						if (should_generate_state_block (block_transaction, info.head))
-						{
-							block.reset (new rai::state_block (source_a, info.head, rep_block->representative (), balance - amount_a, account_a, prv, source_a, cached_work));
-						}
-						else
-						{
-							block.reset (new rai::send_block (info.head, account_a, balance - amount_a, prv, source_a, cached_work));
-						}
->>>>>>> Separating wallets from ledger database.
 						if (id_mdb_val)
 						{
 							auto status (mdb_put (block_transaction, node.wallets.send_action_ids, *id_mdb_val, rai::mdb_val (block->hash ()), 0));
