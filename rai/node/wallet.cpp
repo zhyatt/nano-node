@@ -935,9 +935,12 @@ std::shared_ptr<rai::block> rai::wallet::change_action (rai::account const & sou
 				assert (!error2);
 				uint64_t cached_work (0);
 <<<<<<< HEAD
+<<<<<<< HEAD
 				store.work_get (transaction, source_a, cached_work);
 				block.reset (new rai::state_block (source_a, info.head, representative_a, info.balance, 0, prv, source_a, cached_work));
 =======
+=======
+>>>>>>> de92e858f646e40450fffed92b812606df4a55b0
 				store.work_get (block_transaction, source_a, cached_work);
 				if (should_generate_state_block (block_transaction, info.head))
 				{
@@ -1019,9 +1022,12 @@ std::shared_ptr<rai::block> rai::wallet::send_action (rai::account const & sourc
 						assert (rep_block != nullptr);
 						uint64_t cached_work (0);
 <<<<<<< HEAD
+<<<<<<< HEAD
 						store.work_get (transaction, source_a, cached_work);
 						block.reset (new rai::state_block (source_a, info.head, rep_block->representative (), balance - amount_a, account_a, prv, source_a, cached_work));
 =======
+=======
+>>>>>>> de92e858f646e40450fffed92b812606df4a55b0
 						store.work_get (block_transaction, source_a, cached_work);
 						if (should_generate_state_block (block_transaction, info.head))
 						{
