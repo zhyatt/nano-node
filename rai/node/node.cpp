@@ -531,17 +531,24 @@ public:
 			BOOST_LOG (node.log) << boost::str (boost::format ("Received confirm_ack message from %1% for %2%sequence %3%") % sender % message_a.vote->hashes_string () % std::to_string (message_a.vote->sequence));
 		}
 		node.stats.inc (rai::stat::type::message, rai::stat::detail::confirm_ack, rai::stat::dir::in);
-		node.peers.contacted (sender, message_a.header.version_using);
-		for (auto & vote_block : message_a.vote->blocks)
+		if (message_a.vote.use_count () == 1)
 		{
-			if (!vote_block.which ())
+			node.peers.contacted (sender, message_a.header.version_using);
+			for (auto & vote_block : message_a.vote->blocks)
 			{
-				auto block (boost::get<std::shared_ptr<rai::block>> (vote_block));
-				node.process_active (block);
-				node.active.publish (block);
+				if (!vote_block.which ())
+				{
+					auto block (boost::get<std::shared_ptr<rai::block>> (vote_block));
+					node.process_active (block);
+					node.active.publish (block);
+				}
 			}
+			node.vote_processor.vote (message_a.vote, sender);
 		}
-		node.vote_processor.vote (message_a.vote, sender);
+		else
+		{
+			node.stats.inc (rai::stat::type::vote, rai::stat::detail::vote_duplicate);
+		}
 	}
 	void bulk_pull (rai::bulk_pull const &) override
 	{

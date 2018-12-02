@@ -230,6 +230,7 @@ public:
 		vote_replay,
 		vote_invalid,
 		vote_overflow,
+		vote_duplicate,
 
 		// udp
 		blocking,

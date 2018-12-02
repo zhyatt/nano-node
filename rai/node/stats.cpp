@@ -439,6 +439,9 @@ std::string rai::stat::detail_to_string (uint32_t key)
 		case rai::stat::detail::vote_overflow:
 			res = "vote_overflow";
 			break;
+		case rai::stat::detail::vote_duplicate:
+			res = "vote_duplicate";
+			break;
 		case rai::stat::detail::blocking:
 			res = "blocking";
 			break;
