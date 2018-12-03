@@ -1413,7 +1413,7 @@ void rai::wallets::foreach_representative (rai::transaction const & transaction_
 	}
 }
 
-bool rai::wallets::exists (rai::transaction const & transaction_a, rai::public_key const & account_a)
+bool rai::wallets::exists (rai::transaction const & transaction_a, rai::public_key const & account_a) const
 {
 	auto result (false);
 	for (auto i (items.begin ()), n (items.end ()); !result && i != n; ++i)

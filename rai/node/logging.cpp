@@ -5,7 +5,7 @@
 #include <rai/node/logging.hpp>
 
 rai::logging::logging () :
-ledger_logging_value (false),
+ledger_logging_value (true),
 ledger_duplicate_logging_value (false),
 vote_logging_value (false),
 network_logging_value (true),

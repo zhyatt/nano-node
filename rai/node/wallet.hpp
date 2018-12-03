@@ -175,7 +175,7 @@ public:
 	void do_wallet_actions ();
 	void queue_wallet_action (rai::uint128_t const &, std::shared_ptr<rai::wallet>, std::function<void(rai::wallet &)> const &);
 	void foreach_representative (rai::transaction const &, std::function<void(rai::public_key const &, rai::raw_key const &)> const &);
-	bool exists (rai::transaction const &, rai::public_key const &);
+	bool exists (rai::transaction const &, rai::public_key const &) const;
 	void stop ();
 	void clear_send_ids (rai::transaction const &);
 	std::function<void(bool)> observer;

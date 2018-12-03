@@ -231,6 +231,7 @@ public:
 		vote_invalid,
 		vote_overflow,
 		vote_duplicate,
+		vote_inactive,
 
 		// udp
 		blocking,

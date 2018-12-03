@@ -534,16 +534,23 @@ public:
 		if (message_a.vote.use_count () == 1)
 		{
 			node.peers.contacted (sender, message_a.header.version_using);
-			for (auto & vote_block : message_a.vote->blocks)
+			if (node.hash_active (*message_a.vote))
 			{
-				if (!vote_block.which ())
+				for (auto & vote_block : message_a.vote->blocks)
 				{
-					auto block (boost::get<std::shared_ptr<rai::block>> (vote_block));
-					node.process_active (block);
-					node.active.publish (block);
+					if (!vote_block.which ())
+					{
+						auto block (boost::get<std::shared_ptr<rai::block>> (vote_block));
+						node.process_active (block);
+						node.active.publish (block);
+					}
 				}
+				node.vote_processor.vote (message_a.vote, sender);
 			}
-			node.vote_processor.vote (message_a.vote, sender);
+			else
+			{
+				node.stats.inc (rai::stat::type::vote, rai::stat::detail::vote_inactive);
+			}
 		}
 		else
 		{
@@ -1092,6 +1099,27 @@ bool rai::rep_crawler::exists (rai::block_hash const & hash_a)
 	return active.count (hash_a) != 0;
 }
 
+bool rai::rep_crawler::hash_active (rai::vote const & vote_a) const
+{
+	auto result (false);
+	std::lock_guard<std::mutex> lock (mutex);
+	result = std::any_of (vote_a.blocks.begin (), vote_a.blocks.end (), [this](boost::variant<std::shared_ptr<rai::block>, rai::block_hash> const & item_a) {
+		auto result (false);
+		if (item_a.which ())
+		{
+			auto hash (boost::get<rai::block_hash> (item_a));
+			result = active.find (hash) != active.end ();
+		}
+		else
+		{
+			auto block (boost::get<std::shared_ptr<rai::block>> (item_a));
+			result = active.find (block->hash ()) != active.end ();
+		}
+		return result;
+	});
+	return result;
+}
+
 rai::signature_checker::signature_checker () :
 started (false),
 stopped (false),
@@ -1543,7 +1571,8 @@ block_processor_thread ([this]() {
 }),
 online_reps (*this),
 stats (config.stat_config),
-vote_uniquer (block_uniquer)
+vote_uniquer (block_uniquer),
+startup_time (std::chrono::steady_clock::now ())
 {
 	wallets.observer = [this](bool active) {
 		observers.wallet.notify (active);
@@ -3088,6 +3117,22 @@ bool rai::node::validate_block_by_previous (rai::transaction const & transaction
 	return result;
 }
 
+bool rai::node::hash_active (rai::vote const & vote_a) const
+{
+	auto result (active.hash_active (vote_a) || rep_crawler.hash_active (vote_a));
+	if (!result)
+	{
+		// During startup, allow any vote for a rep we control to be processed
+		// This allows vote_replay to work and bump sequence numbers in case we're out of sync.
+		if (std::chrono::steady_clock::now () - startup_time < std::chrono::minutes (5))
+		{
+			auto transaction (wallets.env.tx_begin ());
+			result = wallets.exists (transaction, vote_a.account);
+		}
+	}
+	return result;
+}
+
 bool rai::election::publish (std::shared_ptr<rai::block> block_a)
 {
 	auto result (false);
@@ -3370,6 +3415,27 @@ bool rai::active_transactions::vote (std::shared_ptr<rai::vote> vote_a, bool sin
 		node.network.republish_vote (vote_a);
 	}
 	return replay;
+}
+
+bool rai::active_transactions::hash_active (rai::vote const & vote_a) const
+{
+	auto result (false);
+	std::lock_guard<std::mutex> lock (mutex);
+	result = std::any_of (vote_a.blocks.begin (), vote_a.blocks.end (), [this](boost::variant<std::shared_ptr<rai::block>, rai::block_hash> const & item_a) {
+		auto result (false);
+		if (item_a.which ())
+		{
+			auto hash (boost::get<rai::block_hash> (item_a));
+			result = blocks.find (hash) != blocks.end ();
+		}
+		else
+		{
+			auto block (boost::get<std::shared_ptr<rai::block>> (item_a));
+			result = roots.find (block->root ()) != roots.end ();
+		}
+		return result;
+	});
+	return result;
 }
 
 bool rai::active_transactions::active (rai::block const & block_a)

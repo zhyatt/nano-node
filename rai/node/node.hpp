@@ -93,6 +93,7 @@ public:
 	// If this returns true, the vote is a replay
 	// If this returns false, the vote may or may not be a replay
 	bool vote (std::shared_ptr<rai::vote>, bool = false);
+	bool hash_active (rai::vote const &) const;
 	// Is the root of this block in the roots container
 	bool active (rai::block const &);
 	void update_difficulty (rai::block const &);
@@ -112,7 +113,7 @@ public:
 	std::unordered_map<rai::block_hash, std::shared_ptr<rai::election>> blocks;
 	std::deque<rai::election_status> confirmed;
 	rai::node & node;
-	std::mutex mutex;
+	mutable std::mutex mutex;
 	// Maximum number of conflicts to vote on per interval, lowest root hash first
 	static unsigned constexpr announcements_per_interval = 32;
 	// Minimum number of block announcements
@@ -371,7 +372,8 @@ public:
 	void add (rai::block_hash const &);
 	void remove (rai::block_hash const &);
 	bool exists (rai::block_hash const &);
-	std::mutex mutex;
+	bool hash_active (rai::vote const &) const;
+	mutable std::mutex mutex;
 	std::unordered_set<rai::block_hash> active;
 };
 class block_processor;
@@ -483,6 +485,7 @@ public:
 	void block_confirm (std::shared_ptr<rai::block>);
 	void process_fork (rai::transaction const &, std::shared_ptr<rai::block>);
 	bool validate_block_by_previous (rai::transaction const &, std::shared_ptr<rai::block>);
+	bool hash_active (rai::vote const &) const;
 	rai::uint128_t delta ();
 	boost::asio::io_service & service;
 	rai::node_config config;
@@ -514,6 +517,7 @@ public:
 	rai::keypair node_id;
 	rai::block_uniquer block_uniquer;
 	rai::vote_uniquer vote_uniquer;
+	std::chrono::steady_clock::time_point const startup_time;
 	static double constexpr price_max = 16.0;
 	static double constexpr free_cutoff = 1024.0;
 	static std::chrono::seconds constexpr period = std::chrono::seconds (60);
