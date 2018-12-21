@@ -1265,7 +1265,7 @@ void rai::block_processor::process_blocks ()
 		{
 			active = true;
 			lock.unlock ();
-			process_receive_many (lock);
+			process_batch (lock);
 			lock.lock ();
 			active = false;
 		}
@@ -1343,7 +1343,7 @@ void rai::block_processor::verify_state_blocks (std::unique_lock<std::mutex> & l
 	lock_a.unlock ();
 }
 
-void rai::block_processor::process_receive_many (std::unique_lock<std::mutex> & lock_a)
+void rai::block_processor::process_batch (std::unique_lock<std::mutex> & lock_a)
 {
 	verify_state_blocks (lock_a);
 	auto transaction (node.store.tx_begin_write ());
@@ -1385,14 +1385,14 @@ void rai::block_processor::process_receive_many (std::unique_lock<std::mutex> & 
 		/* Forced state blocks are not validated in verify_state_blocks () function
 		Because of that we should set set validated_state_block as "false" for forced state blocks (!force) */
 		bool validated_state_block (!force && block.first->type () == rai::block_type::state);
-		auto process_result (process_receive_one (transaction, block.first, block.second, validated_state_block));
+		auto process_result (process (transaction, block.first, block.second, validated_state_block));
 		(void)process_result;
 		lock_a.lock ();
 	}
 	lock_a.unlock ();
 }
 
-rai::process_return rai::block_processor::process_receive_one (rai::transaction const & transaction_a, std::shared_ptr<rai::block> block_a, std::chrono::steady_clock::time_point origination, bool validated_state_block)
+rai::process_return rai::block_processor::process (rai::transaction const & transaction_a, std::shared_ptr<rai::block> block_a, std::chrono::steady_clock::time_point origination, bool validated_state_block)
 {
 	rai::process_return result;
 	auto hash (block_a->hash ());
@@ -2588,7 +2588,7 @@ void rai::node::process_confirmed (std::shared_ptr<rai::block> block_a)
 	if (!exists)
 	{
 		auto transaction (store.tx_begin_write ());
-		block_processor.process_receive_one (transaction, block_a);
+		block_processor.process (transaction, block_a);
 		exists = store.block_exists (transaction, hash);
 	}
 	if (exists)

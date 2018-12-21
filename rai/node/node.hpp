@@ -425,12 +425,12 @@ public:
 	bool should_log ();
 	bool have_blocks ();
 	void process_blocks ();
-	rai::process_return process_receive_one (rai::transaction const &, std::shared_ptr<rai::block>, std::chrono::steady_clock::time_point = std::chrono::steady_clock::now (), bool = false);
+	rai::process_return process (rai::transaction const &, std::shared_ptr<rai::block>, std::chrono::steady_clock::time_point = std::chrono::steady_clock::now (), bool = false);
 
 private:
 	void queue_unchecked (rai::transaction const &, rai::block_hash const &);
 	void verify_state_blocks (std::unique_lock<std::mutex> &);
-	void process_receive_many (std::unique_lock<std::mutex> &);
+	void process_batch (std::unique_lock<std::mutex> &);
 	bool stopped;
 	bool active;
 	std::chrono::steady_clock::time_point next_log;
