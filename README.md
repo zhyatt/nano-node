@@ -57,7 +57,7 @@ The end goal is all Nano code being free from encumbrance to use in any software
 Nano is released under a [2-clause BSD license](LICENSE).
   
 #### Third party licenses 
- 
+
 * [ED25519 - Public domain](http://ed25519.cr.yp.to/software.html)  
 * [Boost - Boost Software License](http://www.boost.org/users/license.html)
 * [cppnetlib - Boost Software License](http://cpp-netlib.org/LICENSE_1_0.txt)
@@ -68,7 +68,8 @@ Nano is released under a [2-clause BSD license](LICENSE).
 * [Argon2 - CC0](https://github.com/khovratovich/Argon2)  
   
 #### Optional third party licenses  
-[QT - LGPL](http://qt-project.org/doc/qt-5/licensing.html)
+
+* [QT - LGPL](http://qt-project.org/doc/qt-5/licensing.html)
 
 ### Contact us
 
